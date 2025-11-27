@@ -6,10 +6,10 @@ import { AuthService } from '../../../core/services/auth.service';
 import { LucideAngularModule, Mail, Lock, User, Phone, ShoppingCart } from 'lucide-angular';
 
 @Component({
-    selector: 'app-signup',
-    standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule, LucideAngularModule],
-    template: `
+  selector: 'app-signup',
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule, LucideAngularModule],
+  template: `
     <div class="min-h-screen bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center p-4">
       <div class="w-full max-w-md">
         <div class="bg-white rounded-lg shadow-xl p-8">
@@ -123,57 +123,63 @@ import { LucideAngularModule, Mail, Lock, User, Phone, ShoppingCart } from 'luci
   `
 })
 export class SignupComponent {
-    authService = inject(AuthService);
-    router = inject(Router);
+  authService = inject(AuthService);
+  router = inject(Router);
 
-    name = '';
-    email = '';
-    phone = '';
-    password = '';
-    confirmPassword = '';
-    isLoading = false;
-    errorMessage = '';
+  name = '';
+  email = '';
+  phone = '';
+  password = '';
+  confirmPassword = '';
+  isLoading = false;
+  errorMessage = '';
 
-    // Icons
-    readonly ShoppingCart = ShoppingCart;
-    readonly Mail = Mail;
-    readonly Lock = Lock;
-    readonly UserIcon = User;
-    readonly PhoneIcon = Phone;
+  // Icons
+  readonly ShoppingCart = ShoppingCart;
+  readonly Mail = Mail;
+  readonly Lock = Lock;
+  readonly UserIcon = User;
+  readonly PhoneIcon = Phone;
 
-    onSignup(): void {
-        if (!this.name || !this.email || !this.password || !this.confirmPassword) {
-            this.errorMessage = 'Please fill in all required fields';
-            return;
-        }
-
-        if (this.password !== this.confirmPassword) {
-            this.errorMessage = 'Passwords do not match';
-            return;
-        }
-
-        if (this.password.length < 6) {
-            this.errorMessage = 'Password must be at least 6 characters';
-            return;
-        }
-
-        this.isLoading = true;
-        this.errorMessage = '';
-
-        this.authService.signup({
-            name: this.name,
-            email: this.email,
-            password: this.password,
-            phone: this.phone
-        }).subscribe({
-            next: () => {
-                this.isLoading = false;
-                this.router.navigate(['/']);
-            },
-            error: (err) => {
-                this.isLoading = false;
-                this.errorMessage = 'Failed to create account';
-            }
-        });
+  onSignup(): void {
+    if (!this.name || !this.email || !this.password || !this.confirmPassword) {
+      this.errorMessage = 'Please fill in all required fields';
+      return;
     }
+
+    if (this.password !== this.confirmPassword) {
+      this.errorMessage = 'Passwords do not match';
+      return;
+    }
+
+    if (this.password.length < 6) {
+      this.errorMessage = 'Password must be at least 6 characters';
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.authService.signup({
+      name: this.name,
+      email: this.email,
+      password: this.password,
+      phone: this.phone
+    }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.router.navigate(['/']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        if (err.status === 0) {
+          this.errorMessage = 'Unable to connect to server. Is the backend running on port 8080?';
+        } else if (err.status === 400) {
+          this.errorMessage = err.error?.error || 'Failed to create account';
+        } else {
+          this.errorMessage = 'Failed to create account. Please try again.';
+        }
+      }
+    });
+  }
 }

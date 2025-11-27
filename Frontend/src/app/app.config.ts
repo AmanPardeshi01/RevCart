@@ -8,6 +8,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideHttpClient(),
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
   ]
 };

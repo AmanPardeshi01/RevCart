@@ -6,10 +6,10 @@ import { AuthService } from '../../../core/services/auth.service';
 import { LucideAngularModule, Mail, Lock, ShoppingCart } from 'lucide-angular';
 
 @Component({
-    selector: 'app-login',
-    standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule, LucideAngularModule],
-    template: `
+  selector: 'app-login',
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule, LucideAngularModule],
+  template: `
     <div class="min-h-screen bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center p-4">
       <div class="w-full max-w-md">
         <div class="bg-white rounded-lg shadow-xl p-8">
@@ -90,46 +90,54 @@ import { LucideAngularModule, Mail, Lock, ShoppingCart } from 'lucide-angular';
   `
 })
 export class LoginComponent {
-    authService = inject(AuthService);
-    router = inject(Router);
+  authService = inject(AuthService);
+  router = inject(Router);
 
-    email = '';
-    password = '';
-    isLoading = false;
-    errorMessage = '';
+  email = '';
+  password = '';
+  isLoading = false;
+  errorMessage = '';
 
-    // Icons
-    readonly ShoppingCart = ShoppingCart;
-    readonly Mail = Mail;
-    readonly Lock = Lock;
+  // Icons
+  readonly ShoppingCart = ShoppingCart;
+  readonly Mail = Mail;
+  readonly Lock = Lock;
 
-    onLogin(): void {
-        if (!this.email || !this.password) {
-            this.errorMessage = 'Please fill in all fields';
-            return;
-        }
-
-        this.isLoading = true;
-        this.errorMessage = '';
-
-        this.authService.login({ email: this.email, password: this.password })
-            .subscribe({
-                next: (user) => {
-                    this.isLoading = false;
-
-                    // Redirect based on role
-                    if (user.role === 'admin') {
-                        this.router.navigate(['/admin']);
-                    } else if (user.role === 'delivery_agent') {
-                        this.router.navigate(['/delivery']);
-                    } else {
-                        this.router.navigate(['/']);
-                    }
-                },
-                error: (err) => {
-                    this.isLoading = false;
-                    this.errorMessage = 'Invalid credentials';
-                }
-            });
+  onLogin(): void {
+    if (!this.email || !this.password) {
+      this.errorMessage = 'Please fill in all fields';
+      return;
     }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.authService.login({ email: this.email, password: this.password })
+      .subscribe({
+        next: (user) => {
+          this.isLoading = false;
+
+          // Redirect based on role (frontend roles only: customer, admin, delivery_agent)
+          if (user.role === 'admin') {
+            this.router.navigate(['/admin']);
+          } else if (user.role === 'delivery_agent') {
+            this.router.navigate(['/delivery']);
+          } else {
+            this.router.navigate(['/']);
+          }
+        },
+        error: (err) => {
+          this.isLoading = false;
+          if (err.status === 0) {
+            this.errorMessage = 'Unable to connect to server. Is the backend running on port 8080?';
+          } else if (err.status === 400) {
+            this.errorMessage = err.error?.error || 'Invalid credentials';
+          } else if (err.status === 401) {
+            this.errorMessage = 'Invalid email or password';
+          } else {
+            this.errorMessage = 'Login failed. Please try again.';
+          }
+        }
+      });
+  }
 }

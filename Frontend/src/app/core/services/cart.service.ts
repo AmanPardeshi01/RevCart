@@ -1,13 +1,16 @@
 import { Injectable, signal, computed, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { CartItem } from '../models/cart.model';
 import { Product } from '../models/product.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CartService {
   private itemsSignal = signal<CartItem[]>([]);
+  private apiUrl = `${environment.apiUrl}/cart`;
 
   // Computed values
   items = this.itemsSignal.asReadonly();
@@ -18,12 +21,41 @@ export class CartService {
     this.itemsSignal().reduce((sum, item) => sum + item.quantity, 0)
   );
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
-    this.loadCartFromStorage();
+  constructor(
+    private httpClient: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.loadCart();
+  }
+
+  private loadCart(): void {
+    // Try to load from server first
+    this.httpClient.get<any>(this.apiUrl).subscribe({
+      next: (response) => {
+        if (response.items && response.items.length > 0) {
+          const items: CartItem[] = response.items.map((item: any) => ({
+            id: item.id || item.productId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+            unit: item.unit
+          }));
+          this.itemsSignal.set(items);
+          this.saveCartToStorage();
+        } else {
+          this.loadCartFromStorage();
+        }
+      },
+      error: () => {
+        // If backend fails, load from localStorage
+        this.loadCartFromStorage();
+      }
+    });
   }
 
   private loadCartFromStorage(): void {
-    if (!isPlatformBrowser(this.platformId)) return; // ⛔ Prevent Vite SSR crash
+    if (!isPlatformBrowser(this.platformId)) return;
 
     const storedCart = localStorage.getItem('revcart_cart');
     if (storedCart) {
@@ -38,7 +70,7 @@ export class CartService {
   }
 
   private saveCartToStorage(): void {
-    if (!isPlatformBrowser(this.platformId)) return; // safe check
+    if (!isPlatformBrowser(this.platformId)) return;
     localStorage.setItem('revcart_cart', JSON.stringify(this.itemsSignal()));
   }
 
@@ -68,6 +100,9 @@ export class CartService {
     });
 
     this.saveCartToStorage();
+
+    // Try to sync with server
+    this.syncWithServer();
   }
 
   removeFromCart(productId: string): void {
@@ -75,6 +110,7 @@ export class CartService {
       items.filter(item => item.id !== productId)
     );
     this.saveCartToStorage();
+    this.syncWithServer();
   }
 
   updateQuantity(productId: string, quantity: number): void {
@@ -89,12 +125,25 @@ export class CartService {
       )
     );
     this.saveCartToStorage();
+    this.syncWithServer();
   }
 
   clearCart(): void {
     this.itemsSignal.set([]);
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('revcart_cart');
+    }
+    this.httpClient.delete(this.apiUrl).subscribe({
+      error: () => console.log('Cart cleared locally')
+    });
+  }
+
+  private syncWithServer(): void {
+    // Optional: Send cart to server for persistence
+    // Only if user is authenticated
+    const token = localStorage.getItem('revcart_token');
+    if (token) {
+      // Server will handle persistence
     }
   }
 }
