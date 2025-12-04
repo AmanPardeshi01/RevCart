@@ -22,17 +22,15 @@ import { LucideAngularModule, Mail, Lock, ShoppingCart } from 'lucide-angular';
           <h2 class="text-2xl font-bold text-center mb-6">Welcome Back</h2>
 
           <p class="text-center text-sm text-gray-600 mb-6">
-            Login to access your account. Your role (Customer/Admin/Delivery Agent) will be determined automatically.
+            Login to access your account.
           </p>
 
-          <!-- Error Message -->
           @if (errorMessage) {
             <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
               {{ errorMessage }}
             </div>
           }
 
-          <!-- Login Form -->
           <form (ngSubmit)="onLogin()" class="space-y-4">
             <div>
               <label class="block text-sm font-medium mb-1">Email</label>
@@ -43,7 +41,7 @@ import { LucideAngularModule, Mail, Lock, ShoppingCart } from 'lucide-angular';
                   [(ngModel)]="email"
                   name="email"
                   required
-                  placeholder="your@email.com"
+                  placeholder="email@example.com"
                   class="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -58,7 +56,7 @@ import { LucideAngularModule, Mail, Lock, ShoppingCart } from 'lucide-angular';
                   [(ngModel)]="password"
                   name="password"
                   required
-                  placeholder="••••••••"
+                  placeholder="******"
                   class="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -79,15 +77,6 @@ import { LucideAngularModule, Mail, Lock, ShoppingCart } from 'lucide-angular';
               <a routerLink="/auth/signup" class="text-primary hover:underline font-medium">Sign up</a>
             </p>
           </div>
-
-          <!-- Demo Accounts -->
-          <!-- <div class="mt-6 p-4 bg-gray-50 rounded-md text-xs">
-            <p class="font-medium mb-2">Demo Accounts:</p>
-            <p>Customer: customer"&#64;"demo.com</p>
-            <p>Admin: admin"&#64;"demo.com</p>
-            <p>Delivery: delivery"&#64;"demo.com</p>
-            <p class="text-gray-500 mt-1">Password: any password</p>
-          </div> -->
         </div>
       </div>
     </div>
@@ -102,46 +91,44 @@ export class LoginComponent {
   isLoading = false;
   errorMessage = '';
 
-  // Icons
   readonly ShoppingCart = ShoppingCart;
   readonly Mail = Mail;
   readonly Lock = Lock;
 
   onLogin(): void {
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Please fill in all fields';
-      return;
-    }
-
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.authService.login({ email: this.email, password: this.password })
-      .subscribe({
-        next: (user) => {
-          this.isLoading = false;
-
-          // Redirect based on role (frontend roles only: customer, admin, delivery_agent)
-          if (user.role === 'admin') {
-            this.router.navigate(['/admin']);
-          } else if (user.role === 'delivery_agent') {
-            this.router.navigate(['/delivery']);
-          } else {
-            this.router.navigate(['/']);
-          }
-        },
-        error: (err) => {
-          this.isLoading = false;
-          if (err.status === 0) {
-            this.errorMessage = 'Unable to connect to server. Is the backend running on port 8080?';
-          } else if (err.status === 400) {
-            this.errorMessage = err.error?.error || 'Invalid credentials';
-          } else if (err.status === 401) {
-            this.errorMessage = 'Invalid email or password';
-          } else {
-            this.errorMessage = 'Login failed. Please try again.';
-          }
-        }
-      });
+  if (!this.email || !this.password) {
+    this.errorMessage = 'Please fill in all fields';
+    return;
   }
+
+  this.isLoading = true;
+  this.errorMessage = '';
+
+  this.authService.login({ email: this.email, password: this.password })
+    .subscribe({
+      next: (user) => {
+        this.isLoading = false;
+
+        if (user.role === 'admin') {
+          this.router.navigate(['/admin']);
+        } else if (user.role === 'delivery_agent') {
+          this.router.navigate(['/delivery']);
+        } else {
+          this.router.navigate(['/']);
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        if (err.status === 0) {
+          this.errorMessage = 'Unable to connect to server. Is backend running?';
+        } else if (err.status === 400) {
+          this.errorMessage = err.error?.error || 'Invalid credentials';
+        } else if (err.status === 401) {
+          this.errorMessage = 'Invalid email or password';
+        } else {
+          this.errorMessage = 'Login failed. Please try again.';
+        }
+      }
+    });
+}
 }

@@ -4,50 +4,59 @@
     <form (ngSubmit)="onSubmit()" class="grid lg:grid-cols-3 gap-8">
         <!-- Checkout Form -->
         <div class="lg:col-span-2 space-y-6">
-            <!-- Delivery Address -->
-            <div class="bg-white rounded-lg border p-6">
-                <div class="flex items-center gap-2 mb-4">
-                    <lucide-icon [img]="MapPin" class="h-5 w-5 text-primary"></lucide-icon>
-                    <h2 class="text-xl font-bold">Delivery Address</h2>
+            <!-- Saved Address Selection -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">Select Address</label>
+                <div class="flex flex-col gap-2">
+                    <label *ngFor="let address of addresses()" class="flex items-center gap-2">
+                        <input type="radio" [value]="address.id" name="addressSelection" [(ngModel)]="selectedAddressId"
+                            (change)="onAddressSelectionChange(address.id!)" />
+                        <span>{{ address.line1 }}, {{ address.city }}, {{ address.state }}, {{ address.postalCode }}</span>
+                        <span *ngIf="address.primaryAddress" class="ml-2 text-xs px-2 py-1 bg-primary text-white rounded">Primary</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="radio" [value]="'new'" name="addressSelection" [(ngModel)]="selectedAddressId" (change)="onAddressSelectionChange('new')" />
+                        <span>Add New Address</span>
+                    </label>
+                </div>
+            </div>
+            <!-- Only show fields if adding new address -->
+            <div class="space-y-4" *ngIf="selectedAddressId === 'new' || addresses().length === 0">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Full Name *</label>
+                    <input type="text" [(ngModel)]="formData().fullName" name="fullName" required
+                        class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
 
-                <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Phone *</label>
+                    <input type="tel" [(ngModel)]="formData().phone" name="phone" required pattern="^[0-9]{10}$"
+                        maxlength="10"
+                        class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">Address *</label>
+                    <textarea [(ngModel)]="formData().address" name="address" required rows="3"
+                        class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium mb-2">Full Name *</label>
-                        <input type="text" [(ngModel)]="formData().fullName" name="fullName" required
+                        <label class="block text-sm font-medium mb-2">City *</label>
+                        <input type="text" [(ngModel)]="formData().city" name="city" required
                             class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" />
                     </div>
-
                     <div>
-                        <label class="block text-sm font-medium mb-2">Phone *</label>
-                        <input type="tel" [(ngModel)]="formData().phone" name="phone" required pattern="^[0-9]{10}$"
-                            maxlength="10"
+                        <label class="block text-sm font-medium mb-2">State *</label>
+                        <input type="text" [(ngModel)]="formData().state" name="state" required
                             class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" />
                     </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Address *</label>
-                        <textarea [(ngModel)]="formData().address" name="address" required rows="3"
-                            class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
-                    </div>
-
-                    <div class="grid sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-2">City *</label>
-                            <input type="text" [(ngModel)]="formData().city" name="city" required
-                                class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-2">State *</label>
-                            <input type="text" [(ngModel)]="formData().state" name="state" required
-                                class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" />
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Postal Code *</label>
-                        <input type="text" [(ngModel)]="formData().postalCode" name="postalCode" required
-                            class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" />
-                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Postal Code *</label>
+                    <input type="text" [(ngModel)]="formData().postalCode" name="postalCode" required
+                        class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" />
                 </div>
             </div>
 

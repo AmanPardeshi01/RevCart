@@ -148,7 +148,6 @@ export class SignupComponent {
 
   roles = [
     { value: 'CUSTOMER', label: 'Customer', description: 'Shop for groceries and place orders' },
-    { value: 'ADMIN', label: 'Admin', description: 'Manage products, orders, and users' },
     { value: 'DELIVERY_AGENT', label: 'Delivery Agent', description: 'Manage and deliver orders' }
   ];
 

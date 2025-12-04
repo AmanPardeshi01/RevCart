@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -38,7 +38,7 @@ interface CheckoutRequest {
     templateUrl: './checkout.component.html',
     styleUrls: ['./checkout.component.scss']
 })
-export class CheckoutComponent {
+export class CheckoutComponent implements OnInit {
     cartService = inject(CartService);
     authService = inject(AuthService);
     router = inject(Router);
@@ -63,6 +63,78 @@ export class CheckoutComponent {
 
     isLoading = signal(false);
     errorMessage = signal('');
+
+    // Saved addresses
+    addresses = signal<AddressDto[]>([]);
+    selectedAddressId: number | 'new' = 'new';
+
+    ngOnInit(): void {
+        this.fetchSavedAddresses();
+    }
+
+    // Fetch addresses
+    fetchSavedAddresses(): void {
+        this.http.get<ApiResponse<AddressDto[]>>(`${environment.apiUrl}/profile/addresses`).subscribe({
+            next: (res) => {
+                if (res.success && Array.isArray(res.data)) {
+                    this.addresses.set(res.data);
+                    const primary = res.data.find((a) => a.primaryAddress && a.id);
+                    const fallback = res.data.find((a) => !!a.id);
+                    if (primary?.id) {
+                        this.setSelectedAddress(primary.id);
+                    } else if (fallback?.id) {
+                        this.setSelectedAddress(fallback.id);
+                    } else {
+                        this.setSelectedAddress('new');
+                    }
+                } else {
+                    this.setSelectedAddress('new');
+                }
+            },
+            error: (err) => {
+                console.error('Failed to fetch addresses', err);
+                this.setSelectedAddress('new');
+            }
+        });
+    }
+
+    onAddressSelectionChange(addressId: number | 'new'): void {
+        this.setSelectedAddress(addressId);
+    }
+
+    private setSelectedAddress(addressId: number | 'new'): void {
+        this.selectedAddressId = addressId;
+        const user = this.authService.user();
+        const baseForm = {
+            ...this.formData(),
+            fullName: user?.name || '',
+            phone: user?.phone || ''
+        };
+
+        if (addressId === 'new') {
+            this.formData.set({
+                ...baseForm,
+                address: '',
+                city: '',
+                state: '',
+                postalCode: '',
+                country: 'India'
+            });
+            return;
+        }
+
+        const address = this.addresses().find((a) => a.id === addressId);
+        if (address) {
+            this.formData.set({
+                ...baseForm,
+                address: address.line1,
+                city: address.city,
+                state: address.state,
+                postalCode: address.postalCode,
+                country: address.country
+            });
+        }
+    }
 
     get deliveryFee(): number {
         return this.cartService.total() > 0 ? 5.99 : 0;

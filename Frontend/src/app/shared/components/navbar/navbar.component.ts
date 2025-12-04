@@ -4,7 +4,18 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { CartService } from '../../../core/services/cart.service';
-import { LucideAngularModule, ShoppingCart, User, Search, Menu, Heart } from 'lucide-angular';
+import {
+  LucideAngularModule,
+  ShoppingCart,
+  User,
+  Search,
+  Menu,
+  Heart,
+  LayoutGrid,
+  Percent,
+  Star,
+  Sparkles
+} from 'lucide-angular';
 
 @Component({
   selector: 'app-navbar',
@@ -28,6 +39,10 @@ export class NavbarComponent {
   readonly Search = Search;
   readonly Menu = Menu;
   readonly Heart = Heart;
+  readonly CategoriesIcon = LayoutGrid;
+  readonly DealsIcon = Percent;
+  readonly BestSellerIcon = Star;
+  readonly NewArrivalIcon = Sparkles;
 
   onSearch(): void {
     if (this.searchQuery.trim()) {

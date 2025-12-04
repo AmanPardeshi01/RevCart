@@ -24,6 +24,12 @@ interface ApiResponse<T> {
     data: T;
 }
 
+type ProfileResponse = ApiResponse<any> | {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+};
+
 @Component({
     selector: 'app-profile',
     standalone: true,
@@ -89,13 +95,14 @@ export class ProfileComponent implements OnInit {
 
     loadProfile(): void {
         this.isLoading.set(true);
-        this.http.get<ApiResponse<any>>(`${environment.apiUrl}/profile`).subscribe({
+        this.http.get<ProfileResponse>(`${environment.apiUrl}/profile`).subscribe({
             next: (response) => {
-                if (response.data) {
+                const payload = this.extractProfilePayload(response);
+                if (payload) {
                     this.profileData.set({
-                        fullName: response.data.fullName || '',
-                        email: response.data.email || '',
-                        phone: response.data.phone || ''
+                        fullName: payload.fullName || '',
+                        email: payload.email || '',
+                        phone: payload.phone || ''
                     });
                 }
                 this.isLoading.set(false);
@@ -105,6 +112,16 @@ export class ProfileComponent implements OnInit {
                 this.isLoading.set(false);
             }
         });
+    }
+
+    private extractProfilePayload(response: ProfileResponse | null | undefined) {
+        if (!response) {
+            return null;
+        }
+        if ('data' in response) {
+            return response.data;
+        }
+        return response;
     }
 
     updateProfile(): void {

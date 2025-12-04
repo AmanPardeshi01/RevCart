@@ -220,8 +220,12 @@ export class AdminOrdersComponent implements OnInit {
     this.http.get<PagedResponse<OrderDto>>(`${environment.apiUrl}/admin/orders?page=${this.currentPage}&size=20`)
       .subscribe({
         next: (response) => {
-          this.orders = response.content || [];
+          this.orders = (response.content || []).sort((a, b) => {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          });
+
           this.totalPages = response.totalPages || 1;
+
           if (this.orders.length === 0) {
             console.log('No orders found');
           }

@@ -79,22 +79,35 @@
     </div>
 
     <!-- Navigation Menu (Desktop) -->
-    <nav class="hidden md:flex h-12 items-center space-x-6 border-t">
-      <a routerLink="/categories" routerLinkActive="text-primary font-semibold"
-        class="text-sm hover:text-primary transition-colors">
-        Categories
+    <nav class="nav-menu hidden md:flex h-12 items-center border-t">
+      <a routerLink="/categories" routerLinkActive="nav-pill--active" [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-pill">
+        <lucide-icon [img]="CategoriesIcon" class="h-4 w-4"></lucide-icon>
+        <div>
+          <p class="nav-pill__title">Categories</p>
+          <p class="nav-pill__subtitle">Shop by type</p>
+        </div>
       </a>
-      <a routerLink="/deals" routerLinkActive="text-primary font-semibold"
-        class="text-sm hover:text-primary transition-colors">
-        Deals & Offers
+      <a routerLink="/deals" routerLinkActive="nav-pill--active" class="nav-pill">
+        <lucide-icon [img]="DealsIcon" class="h-4 w-4"></lucide-icon>
+        <div>
+          <p class="nav-pill__title">Deals & Offers</p>
+          <p class="nav-pill__subtitle">Up to 40% off</p>
+        </div>
       </a>
-      <a routerLink="/best-sellers" routerLinkActive="text-primary font-semibold"
-        class="text-sm hover:text-primary transition-colors">
-        Best Sellers
+      <a routerLink="/best-sellers" routerLinkActive="nav-pill--active" class="nav-pill">
+        <lucide-icon [img]="BestSellerIcon" class="h-4 w-4"></lucide-icon>
+        <div>
+          <p class="nav-pill__title">Best Sellers</p>
+          <p class="nav-pill__subtitle">Top rated picks</p>
+        </div>
       </a>
-      <a routerLink="/new-arrivals" routerLinkActive="text-primary font-semibold"
-        class="text-sm hover:text-primary transition-colors">
-        New Arrivals
+      <a routerLink="/new-arrivals" routerLinkActive="nav-pill--active" class="nav-pill">
+        <lucide-icon [img]="NewArrivalIcon" class="h-4 w-4"></lucide-icon>
+        <div>
+          <p class="nav-pill__title">New Arrivals</p>
+          <p class="nav-pill__subtitle">Fresh drops</p>
+        </div>
       </a>
     </nav>
   </div>
