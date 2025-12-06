@@ -172,16 +172,23 @@ pipeline {
             if (-not $success) { throw "Frontend docker build failed after $retries attempts" }
             docker tag $frontend $frontendLatest
 
-            # ---------- push ----------
+            # ---------- push with retry ----------
+            function Push-WithRetry {
+              param([string]$image, [int]$maxRetries = 3)
+              for ($i = 1; $i -le $maxRetries; $i++) {
+                Write-Host "Pushing $image (attempt $i/$maxRetries)..."
+                docker push $image
+                if ($LASTEXITCODE -eq 0) { return }
+                if ($i -lt $maxRetries) { Start-Sleep -Seconds 5 }
+              }
+              throw "Push failed after $maxRetries attempts: $image"
+            }
+
             Write-Host "Pushing images..."
-            docker push $backend
-            if ($LASTEXITCODE -ne 0) { throw "Push failed: $backend" }
-            docker push $backendLatest
-            if ($LASTEXITCODE -ne 0) { throw "Push failed: $backendLatest" }
-            docker push $frontend
-            if ($LASTEXITCODE -ne 0) { throw "Push failed: $frontend" }
-            docker push $frontendLatest
-            if ($LASTEXITCODE -ne 0) { throw "Push failed: $frontendLatest" }
+            Push-WithRetry -image $backend
+            Push-WithRetry -image $backendLatest
+            Push-WithRetry -image $frontend
+            Push-WithRetry -image $frontendLatest
 
             Write-Host "Docker logout"
             docker logout
