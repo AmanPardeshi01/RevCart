@@ -158,8 +158,18 @@ pipeline {
 
             # ---------- build frontend (prod Dockerfile) ----------
             Write-Host "Building frontend image (prod): $frontend"
-            docker build -t $frontend -f Frontend/Dockerfile.prod Frontend
-            if ($LASTEXITCODE -ne 0) { throw "Frontend docker build failed (exit $LASTEXITCODE)" }
+            $retries = 3
+            $success = $false
+            for ($i = 1; $i -le $retries; $i++) {
+              Write-Host "Attempt $i of $retries..."
+              docker build -t $frontend -f Frontend/Dockerfile.prod Frontend
+              if ($LASTEXITCODE -eq 0) {
+                $success = $true
+                break
+              }
+              if ($i -lt $retries) { Start-Sleep -Seconds 10 }
+            }
+            if (-not $success) { throw "Frontend docker build failed after $retries attempts" }
             docker tag $frontend $frontendLatest
 
             # ---------- push ----------
@@ -182,6 +192,33 @@ pipeline {
             Remove-Item -Force Frontend\\3rdpartylicenses.txt -ErrorAction SilentlyContinue
           '''
         }
+      }
+    }
+
+    stage('Deploy Containers') {
+      steps {
+        powershell '''
+          $ErrorActionPreference = 'Stop'
+          Write-Host "Deploying containers locally..."
+
+          # Stop and remove existing containers
+          docker-compose down
+
+          # Pull latest images
+          docker pull amanpardeshi01/revcart-backend:latest
+          docker pull amanpardeshi01/revcart-frontend:latest
+
+          # Start all services
+          docker-compose up -d
+
+          # Wait for services
+          Start-Sleep -Seconds 20
+
+          # Show status
+          docker-compose ps
+
+          Write-Host "Deployment complete!"
+        '''
       }
     }
   }
