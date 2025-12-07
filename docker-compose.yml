@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   mysql:
     image: mysql:8.0
@@ -23,7 +21,9 @@ services:
     restart: unless-stopped
 
   backend:
-    image: amanpardeshi01/revcart-backend:latest
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
     container_name: revcart-backend
     ports:
       - "8080:8080"
@@ -44,7 +44,9 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: amanpardeshi01/revcart-frontend:latest
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
     container_name: revcart-frontend
     ports:
       - "4200:80"
